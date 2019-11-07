@@ -47,12 +47,14 @@
   <Import Project="$(FSharpTargetsPath)" />
   <ItemGroup>
     <Compile Include="AssemblyInfo.fs" />
-    <Compile Include="Program.fs" />
     <None Include="App.config" />
     <Content Include="packages.config" />
-    <None Include="Script1.fsx" />
+    <None Include="CFR.fsx" />
   </ItemGroup>
   <ItemGroup>
+    <Reference Include="FsCheck">
+      <HintPath>..\packages\FsCheck.3.0.0-alpha4\lib\net452\FsCheck.dll</HintPath>
+    </Reference>
     <Reference Include="FSharp.Core">
       <HintPath>..\packages\FSharp.Core.4.7.0\lib\net45\FSharp.Core.dll</HintPath>
     </Reference>
