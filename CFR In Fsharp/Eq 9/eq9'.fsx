@@ -3,7 +3,6 @@
 // Intended to test eq 9 from the `Regret Minimization in Games with Incomplete Information` paper with some simplifying assumptions.
 // * Chance nodes are not there.
 // * T is 1.
-// * Policy is not split into actions at current node and everything else.
 // * Only a single player is considered. This is equivalent to the other player having nodes with only a single action.
 
 // All of the above are simplifications of the original definitions and could easily be added. But if the subset does not work, then
