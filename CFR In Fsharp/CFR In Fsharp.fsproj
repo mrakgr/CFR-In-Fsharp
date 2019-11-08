@@ -53,6 +53,7 @@
     <None Include="Eq 9\eq9.fsx" />
     <None Include="Eq 9\eq9%27.fsx" />
     <None Include="Eq 9\readme.md" />
+    <None Include="Script1.fsx" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="FsCheck">
