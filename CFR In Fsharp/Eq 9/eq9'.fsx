@@ -69,8 +69,8 @@ open FsCheck
 
 let ``R=R'`` ({tree=tree; policies=policies} : TreePolicies) =
     let o, o' = policies.[0], policies.[1]
-    let left = R o o' tree
-    let right = R' o o' tree
+    let left = R o' o tree
+    let right = R' o' o tree
     // Tests for equality and prints an error if the property fails
     left =? right |@ sprintf "Failure. %f <> %f. Error bound for floats is %f." left right error_bound_for_floats
 
