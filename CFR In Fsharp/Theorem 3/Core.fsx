@@ -53,7 +53,7 @@ let gen_game num_policies num_infosets size : Gen<TreePolicies> = gen {
     
 
 type MyGenerators =
-    static member Game = Arb.fromGen (gen_game 2 5 2)
+    static member Game = Arb.fromGen (gen_game 2 5 50)
 
 Arb.register<MyGenerators>()
 

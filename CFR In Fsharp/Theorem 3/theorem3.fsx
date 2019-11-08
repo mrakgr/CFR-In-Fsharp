@@ -13,12 +13,14 @@ let update_at_branch_current cur next = function
     | Terminal _ -> cur
     | Response (id, _) -> Map.add id (Map.find id next) cur
 
-let R_imm (o' : Policy) (o : Policy) (tree : GameTree) = u (update_at_branch_current o o' tree) tree - u o tree |> max 0.0
+let R_imm (o' : Policy) (o : Policy) (tree : GameTree) = max 0.0 (u (update_at_branch_current o o' tree) tree - u o tree)
 
 let rec R_imm_sum (o' : Policy) (o : Policy) (tree : GameTree) =
     R_imm o' o tree +
     // No multiplication by the player probabilities. It does not matter whether o' or o is passed to u'.
-    u' o' (fun _ branch -> R_imm_sum o' o tree) tree
+    match tree with
+    | Terminal _ -> 0.0
+    | Response(id, branches) -> Array.fold (fun s branch -> s + R_imm_sum o' o branch) 0.0 branches
 
 open FsCheck
 
@@ -26,8 +28,7 @@ let ``R_full<=R_imm_sum'`` ({tree=tree; policies=policies} : TreePolicies) =
     let o, o' = policies.[0], policies.[1]
     let left = R_full o' o tree
     let right = R_imm_sum o' o tree
-    // Tests for equality and prints an error if the property fails
-    left =? right |@ sprintf "Failure. %f <> %f. Error bound for floats is %f." left right error_bound_for_floats
+    left <= right |@ sprintf "Failure. %f <> %f. Error bound for floats is %f." left right error_bound_for_floats
 
-// Fails.
-Check.Quick ``R=R'``
+// Passes
+Check.One({Config.Quick with MaxTest=10000}, ``R_full<=R_imm_sum'``)
