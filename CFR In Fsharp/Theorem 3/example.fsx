@@ -69,21 +69,9 @@ let f ({tree=tree; policies=policies} : TreePolicies) =
     left, right
 
 let example =
-    { policies =
-                [|Map
-                    [(0, [|1.0; 0.0|]);
-                     (1, [|1.0; 0.0|]);
-                     ];
-                  Map
-                    [(0, [|0.0; 1.0|]);
-                     (1, [|0.0; 1.0|]);
-                     ]|]
-      tree =
-            Response
-              (0,
-               [|Terminal -10.0;
-                 Response
-                   (1,[|Response (0,[|Terminal 10.0; Terminal -10.0|]); Terminal 10.0|])|])
+    { policies = [|Map [(0, [|1.0; 0.0|]); (1, [|1.0; 0.0|])]
+                   Map [(0, [|0.0; 1.0|]); (1, [|0.0; 1.0|])] |]
+      tree = Response(0, [|Terminal -10.0; Response (1,[|Response (0,[|Terminal 10.0; Terminal -10.0|]); Terminal 10.0|])|])
       infoset_sizes = [|2; 2|] }
 
 f example
