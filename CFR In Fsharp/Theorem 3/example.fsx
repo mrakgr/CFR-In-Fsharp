@@ -7,10 +7,7 @@ let u' (o : Policy) f = function
 
 let rec u (o : Policy) tree = u' o (fun policy branch -> policy * u o branch) tree
 
-let R_full (o' : Policy) (o : Policy) (tree : GameTree) = 
-    let l = u o' tree 
-    let r = u o tree
-    l - r
+let R_full (o' : Policy) (o : Policy) (tree : GameTree) = u o' tree - u o tree
 
 let update_at_branch_current cur next = function
     | Terminal _ -> cur
@@ -18,12 +15,7 @@ let update_at_branch_current cur next = function
 
 let R_imm (o' : Policy) (o : Policy) (tree : GameTree) = 
     let o' = update_at_branch_current o o' tree
-    let l = u o' tree
-    let r = u o tree
-    let res = max 0.0 (l - r)
-    printfn "tree=%A" tree
-    printfn "%A\n%A\nmax 0.0 (l - r)=%f" (o', l) (o, r) res
-    res
+    max 0.0 (u o' tree - u o tree)
 
 let rec R_imm_sum (o' : Policy) (o : Policy) (tree : GameTree) =
     match tree with

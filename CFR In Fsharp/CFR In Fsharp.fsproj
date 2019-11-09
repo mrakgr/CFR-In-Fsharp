@@ -54,7 +54,9 @@
     <None Include="Eq 9\eq9%27.fsx" />
     <None Include="Eq 9\readme.md" />
     <None Include="Theorem 3\Core.fsx" />
-    <None Include="Theorem 3\theorem3.fsx" />
+    <None Include="Theorem 3\example.fsx" />
+    <None Include="Theorem 3\example.py" />
+    <None Include="Theorem 3\readme.md" />
     <None Include="Script1.fsx" />
   </ItemGroup>
   <ItemGroup>
