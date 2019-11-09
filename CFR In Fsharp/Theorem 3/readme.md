@@ -1,4 +1,4 @@
-﻿Surprisingly, theorem 3 from the `Regret Minimization in Games with Incomplete Information` is outright wrong. There is a counterexample in both F# and Python.
+﻿Work pending...
 
 In the tests there are a bunch of simplifying assumptions:
 * T=1. Policies are not summed across time.

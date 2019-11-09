@@ -1,4 +1,6 @@
-﻿// Types
+﻿open System.Collections.Generic
+
+// Types
 
 type Infoset = int
 type Size = int
@@ -30,19 +32,53 @@ let gen_policy infoset_sizes : Gen<Policy> =
 let gen_reward = Gen.choose (-100,100) |> Gen.map (fun x -> float x / 10.0)
 let gen_terminal = gen_reward |> Gen.map Terminal
 
-let gen_tree num_infosets s : Gen<GameTree * Size []> = gen {
-    let! (infoset_sizes : Size []) = Gen.choose (2,5) |> Gen.arrayOfLength num_infosets
-    let rec loop s =
+let pick_one (x : Set<_>) =
+    Gen.choose(0,x.Count-1)
+    |> Gen.map (fun i -> Set.fold (fun (i', s) x -> if i = i' then i' + 1, Some x else i' + 1, s) (0, None) x)
+
+let gen_tree s : Gen<GameTree * Size []> = gen {
+    let infoset_sizes = ResizeArray()
+    //let! (infoset_sizes : Size []) = Gen.choose (2,5) |> Gen.arrayOfLength 1000
+    let rec loop infoset_available infoset_removed s =
         if s > 0 then
             gen {
-                let! (id : Infoset) = Gen.choose (0, infoset_sizes.Length-1)
+                match! pick_one (infoset_available - infoset_removed) with
+                | None -> 
+                    let! infoset_size = Gen.choose(2,5)
+                    let l = infoset_sizes.Count
+                    infoset_sizes.Add(c)
+                    let! branches = 
+                        Array.init infoset_size (fun _ -> loop (Set.add l infoset_available) (Set.add l infoset_removed) (s/infoset_size)) 
+                        |> Gen.sequenceToArr
+                    return Response(id,branches)
+
+
+                if sel.Count = 0 then 
+                    let! c = Gen.choose (2,5)
+                    infoset_sizes.Add(c)
+                    avail.Add(c)
+                
+
+                let! (id : Infoset) =
+                    
+                        gen {
+                            
+                            let l = infoset_sizes.Count
+                            infoset_sizes.Add(c)
+                            return infoset_available.Add l
+                        }
+                    else
+                        gen {
+                            let! c = Gen.choose(0, infoset_available.Count)
+                        }
+
+                //let! (id : Infoset) = Gen.choose (0, infoset_sizes.Length-1)
                 let infoset_size = infoset_sizes.[id]
-                let! branches = Array.init infoset_size (fun _ -> loop (s/infoset_size)) |> Gen.sequenceToArr
-                return Response(id,branches)
+
             }
         else gen_terminal
-    let! tree = loop s
-    return tree, infoset_sizes
+    let! tree = loop Map.empty s
+    return tree
     }
 
 let gen_game num_policies num_infosets size : Gen<TreePolicies> = gen {

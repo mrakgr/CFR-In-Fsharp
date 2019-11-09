@@ -75,4 +75,3 @@ let example =
       infoset_sizes = [|2; 2|] }
 
 f example
-
