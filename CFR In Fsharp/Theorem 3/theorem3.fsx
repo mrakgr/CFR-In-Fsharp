@@ -7,13 +7,23 @@ let u' (o : Policy) f = function
 
 let rec u (o : Policy) tree = u' o (fun policy branch -> policy * u o branch) tree
 
-let R_full (o' : Policy) (o : Policy) (tree : GameTree) = u o' tree - u o tree
+let R_full (o' : Policy) (o : Policy) (tree : GameTree) = 
+    let l = u o' tree 
+    let r = u o tree
+    l - r
 
 let update_at_branch_current cur next = function
     | Terminal _ -> cur
     | Response (id, _) -> Map.add id (Map.find id next) cur
 
-let R_imm (o' : Policy) (o : Policy) (tree : GameTree) = max 0.0 (u (update_at_branch_current o o' tree) tree - u o tree)
+let R_imm (o' : Policy) (o : Policy) (tree : GameTree) = 
+    let o' = update_at_branch_current o o' tree
+    let l = u o' tree
+    let r = u o tree
+    let res = max 0.0 (l - r)
+    printfn "tree=%A" tree
+    printfn "%A\n%A\nmax 0.0 (l - r)=%f" (o', l) (o, r) res
+    res
 
 let rec R_imm_sum (o' : Policy) (o : Policy) (tree : GameTree) =
     match tree with
@@ -32,7 +42,7 @@ let ``R_full<=R_imm_sum'`` ({tree=tree; policies=policies} : TreePolicies) =
     left <= right |@ sprintf "Failure. %f <> %f. Error bound for floats is %f." left right error_bound_for_floats
 
 // Fails
-Check.One({Config.Quick with MaxTest=100000}, ``R_full<=R_imm_sum'``)
+//Check.One({Config.Quick with MaxTest=100000}, ``R_full<=R_imm_sum'``)
 
 // Surprisingly it seems that theorem 3 is false as well.
 // Here is a counter example.
@@ -59,3 +69,30 @@ Check.One({Config.Quick with MaxTest=100000}, ``R_full<=R_imm_sum'``)
 //             Response
 //               (3,[|Response (1,[|Terminal 8.5; Terminal -7.1|]); Terminal 6.5|])|])
 //  infoset_sizes = [|3; 2; 4; 2; 4|] }
+
+let f ({tree=tree; policies=policies} : TreePolicies) =
+    let o, o' = policies.[0], policies.[1]
+    let left = R_full o' o tree
+    let right = R_imm_sum o' o tree
+    left, right
+
+let example =
+    { policies =
+                [|Map
+                    [(0, [|1.0; 0.0|]);
+                     (1, [|1.0; 0.0|]);
+                     ];
+                  Map
+                    [(0, [|0.0; 1.0|]);
+                     (1, [|0.0; 1.0|]);
+                     ]|]
+      tree =
+            Response
+              (0,
+               [|Terminal -10.0;
+                 Response
+                   (1,[|Response (0,[|Terminal 10.0; Terminal -10.0|]); Terminal 10.0|])|])
+      infoset_sizes = [|2; 2|] }
+
+f example
+

@@ -57,7 +57,6 @@ let gen_game num_policies num_infosets size : Gen<TreePolicies> = gen {
 
 //gen_game 2 5 10
 //|> Gen.sample 1
-    
 
 type MyGenerators =
     static member Game = Arb.fromGen (gen_game 2 5 5)
