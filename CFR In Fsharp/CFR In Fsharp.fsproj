@@ -52,6 +52,7 @@
     <None Include="Lemma 5\Core.fsx" />
     <None Include="Lemma 5\example.fsx" />
     <None Include="Lemma 5\readme.md" />
+    <None Include="Lemma 5\eq 13.fsx" />
     <None Include="Theorem 3\Core.fsx" />
     <None Include="Theorem 3\example.fsx" />
     <None Include="Theorem 3\readme.md" />
