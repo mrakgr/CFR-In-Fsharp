@@ -57,7 +57,7 @@
     <None Include="Theorem 3\example.fsx" />
     <None Include="Theorem 3\example.py" />
     <None Include="Theorem 3\readme.md" />
-    <None Include="Script1.fsx" />
+    <None Include="count_and_pick.fsx" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="FsCheck">
