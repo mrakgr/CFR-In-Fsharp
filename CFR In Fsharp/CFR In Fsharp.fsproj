@@ -60,6 +60,7 @@
     <None Include="Theorem 3\Simplified\Lemma 5\eq 9.fsx" />
     <None Include="Theorem 3\count_and_pick.fsx" />
     <None Include="Theorem 3\Core.fsx" />
+    <None Include="Theorem 3\proofs.fsx" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="FsCheck">

@@ -1,4 +1,4 @@
-﻿#r @"..\packages\FsCheck.3.0.0-alpha4\lib\net452\FsCheck.dll"
+﻿#r @"..\..\packages\FsCheck.3.0.0-alpha4\lib\net452\FsCheck.dll"
 open FsCheck
 
 let inline gap_empty size next i = if i < size then i else size + next (i - size)

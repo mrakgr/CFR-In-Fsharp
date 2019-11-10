@@ -19,7 +19,7 @@ let R_imm (o' : Policy) (o : Policy) (tree : GameTree) =
 
 let rec R_imm_sum (o' : Policy) (o : Policy) (tree : GameTree) =
     match tree with
-    | Terminal _ -> 0.0 // This check is to avoid double counting the Terminal nodes due to the recursion. It is not an issue in the eq 9 test.
+    | Terminal _ -> 0.0
     | Response (_, branches) -> 
         // As it is assumed that the opponent only has one action in every node, the CFR reach probabilities are all 1 and play no role.
         R_imm o' o tree + Array.fold (fun s branch -> s + R_imm_sum o' o branch) 0.0 branches
@@ -33,4 +33,4 @@ let ``R_full<=R_imm_sum'`` ({tree=tree; policies=policies} : TreePolicies) =
     left <= right |@ sprintf "%f <= %f" left right
 
 // Fails
-Check.One({Config.Quick with MaxTest=100000}, ``R_full<=R_imm_sum'``)
+Check.One({Config.Quick with MaxTest=10000}, ``R_full<=R_imm_sum'``)

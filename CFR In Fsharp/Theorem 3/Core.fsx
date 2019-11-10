@@ -4,9 +4,9 @@
 
 type Infoset = int
 type Size = int
-//type Player = int // Assumes only one player. This is equivalent to having the other players have only one action in every node.
+type Player = int 
 
-type GameTree = // Does not use chance nodes.
+type GameTree = // Chance nodes could be considered player nodes with both the opponent and current player policies being equal.
 | Terminal of reward : float
 | Response of id : Infoset * branches : GameTree []
 
@@ -18,7 +18,7 @@ type Policy = Map<Infoset, PolicyAtNode>
 #r @"..\..\packages\FsCheck.3.0.0-alpha4\lib\net452\FsCheck.dll"
 open FsCheck
 
-type TreePolicies = {policies : Policy []; tree : GameTree }
+type TreePolicies = {policies : (Policy * Policy) []; tree : GameTree }
 
 let gen_policy_at_node s : Gen<PolicyAtNode> = 
     let total = 100000
@@ -40,6 +40,9 @@ let count_and_pick (l : Set<int>) =
     let c, next = Set.foldBack (fun x' (c, next) -> c+1, fun x i -> gap_empty (x' - x - 1) (gap_one (next x')) i) l (0, (fun x' i -> i))
     c, next -1
 
+/// One important consideration when generating the tree is to make sure that infosets do not repeat in the child nodes.
+/// Hence it is necessary to keep track of parent's infosets in order to avoid selecting them.
+/// The proofs will fail unless that is done.
 let gen_tree : Gen<GameTree * Size []> = Gen.sized <| fun s -> gen {
     let infoset_sizes = ResizeArray()
     let rec response infoset_removed s =
@@ -73,10 +76,10 @@ let gen_tree : Gen<GameTree * Size []> = Gen.sized <| fun s -> gen {
 
 let gen_game num_policies : Gen<TreePolicies> = gen {
     let! tree, infoset_sizes = gen_tree
-    let! policies = gen_policy infoset_sizes |> Gen.arrayOfLength num_policies
+    let! policies = gen_policy infoset_sizes |> Gen.two |> Gen.arrayOfLength num_policies
     return {policies=policies; tree=tree}
     }
-    
+
 //gen_game 2
 //|> Gen.sample 1
 
