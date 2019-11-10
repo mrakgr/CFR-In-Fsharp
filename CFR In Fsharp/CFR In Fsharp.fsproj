@@ -49,13 +49,11 @@
     <Compile Include="AssemblyInfo.fs" />
     <None Include="App.config" />
     <Content Include="packages.config" />
-    <None Include="Eq 9\Core.fsx" />
-    <None Include="Eq 9\eq9.fsx" />
-    <None Include="Eq 9\eq9%27.fsx" />
-    <None Include="Eq 9\readme.md" />
+    <None Include="Lemma 5\Core.fsx" />
+    <None Include="Lemma 5\example.fsx" />
+    <None Include="Lemma 5\readme.md" />
     <None Include="Theorem 3\Core.fsx" />
     <None Include="Theorem 3\example.fsx" />
-    <None Include="Theorem 3\example.py" />
     <None Include="Theorem 3\readme.md" />
     <None Include="count_and_pick.fsx" />
   </ItemGroup>

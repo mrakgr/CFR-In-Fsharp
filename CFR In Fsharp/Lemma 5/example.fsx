@@ -17,22 +17,19 @@ let u' (o : Policy) f = function
 
 let rec u (o : Policy) tree = u' o (fun policy branch -> policy * u o branch) tree
 
-let rec infosets_at_branch = function
-    | Terminal _ -> Set.empty
-    | Response (id, branches) -> Set.add id (Array.fold (fun s branch -> Set.union s (infosets_at_branch branch)) Set.empty branches)
-
 let update_at_branch_current cur next = function
     | Terminal _ -> cur
     | Response (id, _) -> Map.add id (Map.find id next) cur
-let update_at_branch_descent cur next branch = Set.fold (fun s id -> Map.add id (Map.find id next) s) cur (infosets_at_branch branch)
 
 let R (o' : Policy) (o : Policy) (tree : GameTree) = u o' tree - u o tree
-
 let R' (o' : Policy) (o : Policy) (tree : GameTree) =
-    u (update_at_branch_current o o' tree) tree - u o tree + 
-    /// According to definition of succ which only considers opponent reach probabilities, 
-    /// I skip multipling by current player reach probabilities.
-    u' o (fun _ branch -> u (update_at_branch_descent o o' branch) branch - u o branch) tree
+    match tree with
+    | Terminal _ -> 0.0
+    | Response (id, branches) ->
+        u (update_at_branch_current o o' tree) tree - u o tree + 
+        /// According to definition of succ which only considers opponent reach probabilities, 
+        /// I skip multipling by current player reach probabilities.
+        Array.fold (fun s branch -> s + max 0.0 (u o' branch - u o branch)) 0.0 branches
 
 open FsCheck
 
@@ -41,7 +38,7 @@ let ``R=R'`` ({tree=tree; policies=policies} : TreePolicies) =
     let left = R o' o tree
     let right = R' o' o tree
     // Tests for equality and prints an error if the property fails
-    left =? right |@ sprintf "Failure. %f <> %f. Error bound for floats is %f." left right error_bound_for_floats
+    left <= right |@ sprintf "%f <> %f" left right
 
 // Fails.
-Check.Quick ``R=R'``
+Check.One({Config.Default with MaxTest=10000}, ``R=R'``)
