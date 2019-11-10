@@ -25,14 +25,25 @@ let action_at i (o : Policy) (id : Infoset) =
     a.[i] <- 1.0
     Map.add id a o
 
+let action_max (o : Policy) (id : Infoset) f =
+    let len = o.[id].Length
+    let rec loop s i =
+        if i < len then
+            let a = Array.zeroCreate len
+            a.[i] <- 1.0
+            loop (max s (f (Map.add id a o))) (i+1)
+        else s
+    loop -infinity 0
+
 let R (o' : Policy) (o : Policy) (tree : GameTree) = u o' tree - u o tree
 let R' (o' : Policy) (o : Policy) (tree : GameTree) =
     match tree with
     | Terminal _ -> 0.0
     | Response (id, branches) ->
-        u (update_at_branch_current o o' tree) tree - u o tree + 
-        /// According to definition of succ which only considers opponent reach probabilities, 
-        /// I skip multipling by current player reach probabilities.
+        action_max o id (fun o' -> u o' tree - u o tree) + 
+        // According to definition of succ which only considers opponent reach probabilities, 
+        // I skip multipling by current player reach probabilities.
+        // Since perfect recall assures no cycles in infosets `u o' branch = u (action_at i o' id) branch` holds.
         Array.max (Array.mapi (fun i branch -> u (action_at i o' id) branch - u o branch) branches)
 
 open FsCheck
