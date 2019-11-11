@@ -61,6 +61,7 @@
     <None Include="Theorem 3\count_and_pick.fsx" />
     <None Include="Theorem 3\Core.fsx" />
     <None Include="Theorem 3\proofs.fsx" />
+    <None Include="Script1.fsx" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="FsCheck">
