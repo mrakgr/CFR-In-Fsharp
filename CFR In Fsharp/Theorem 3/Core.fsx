@@ -18,7 +18,7 @@ type Policy = Map<Infoset, PolicyAtNode>
 #r @"..\..\packages\FsCheck.3.0.0-alpha4\lib\net452\FsCheck.dll"
 open FsCheck
 
-type TreePolicies = {policies : (Policy * Policy) []; tree : GameTree }
+type TreePolicies = {policies_old : Policy []; policies_new : Policy []; tree : GameTree }
 
 let gen_policy_at_node s : Gen<PolicyAtNode> = 
     let total = 100000
@@ -48,7 +48,8 @@ let gen_tree : Gen<GameTree * Size []> = Gen.sized <| fun s -> gen {
     let rec response infoset_removed s =
         if s > 0 then
             gen {
-                let infoset_removed_count, pick_ith = count_and_pick infoset_removed
+                // Replace `infoset_removed` with `Set.empty` to generate trees without perfect recall.
+                let infoset_removed_count, pick_ith = count_and_pick infoset_removed 
                 let make_new = gen {
                     let id = infoset_sizes.Count
                     let! infoset_size = Gen.choose(2,5)
@@ -74,22 +75,18 @@ let gen_tree : Gen<GameTree * Size []> = Gen.sized <| fun s -> gen {
     return tree, infoset_sizes.ToArray()
     }
 
-let gen_game num_policies : Gen<TreePolicies> = gen {
+let gen_game num_old num_new : Gen<TreePolicies> = gen {
     let! tree, infoset_sizes = gen_tree
-    let! policies = gen_policy infoset_sizes |> Gen.two |> Gen.arrayOfLength num_policies
-    return {policies=policies; tree=tree}
+    let! policies_old = gen_policy infoset_sizes |> Gen.arrayOfLength num_old
+    let! policies_new = gen_policy infoset_sizes |> Gen.arrayOfLength num_new
+    return {policies_old=policies_old; policies_new=policies_new; tree=tree}
     }
 
-//gen_game 2
-//|> Gen.sample 1
-
 type MyGenerators =
-    static member Game = Arb.fromGen (gen_game 2)
+    static member Game = Arb.fromGen (gen_game 5 5)
 
 Arb.register<MyGenerators>()
 
-//Arb.generate<TreePolicies>
-//|> Gen.sampleWithSize 6 10
-
 let error_bound_for_floats = 10.0 ** -7.0
 let (=?) a b = abs (a - b) <= error_bound_for_floats
+let (<=?) a b = a <= b + error_bound_for_floats
