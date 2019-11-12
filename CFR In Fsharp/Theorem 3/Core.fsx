@@ -1,4 +1,37 @@
-﻿open System.Collections.Generic
+﻿#r @"..\..\packages\FsCheck.3.0.0-alpha4\lib\net452\FsCheck.dll"
+open FsCheck
+
+// Equalities and inequalities, transitive relation
+
+let error_bound_for_floats = 10.0 ** -7.0
+let (=~) a b = abs (a - b) <= error_bound_for_floats
+let (<=~) a b = a <= b + error_bound_for_floats
+let (<~) a b = a < b + error_bound_for_floats
+
+let (.=) a b = a =~ b |@ sprintf "%f = %f" a b
+let (.<=) a b = a <=~ b |@ sprintf "%f <= %f" a b
+let (.<) a b = a <~ b |@ sprintf "%f < %f" a b
+
+type Op = Eq | Lt | Lte
+type TransitiveRelation =
+    | Rel of Op * float * string * TransitiveRelation
+    | Value of float
+
+let rec relation x = 
+    let body a label b = function
+        | Eq -> a =~ b |@ sprintf "%s failed. %f =~ %f is false" label a b
+        | Lte -> a <=~ b |@ sprintf "%s failed. %f <=~ %f is false" label a b
+        | Lt -> a <~ b |@ sprintf "%s failed. %f <~ %f is false" label a b
+    match x with
+    | Rel (op, a, label, (Rel(_,b,_,_) as next)) -> body a label b op .&. relation next
+    | Rel (op, a, label, Value b) -> body a label b op
+    | Value _ -> true |@ "Qed"
+
+let value = Value
+let step a label = a, label
+let (^=) (a, label) b = Rel(Eq,a,label,b)
+let (^<) (a, label) b = Rel(Lt,a,label,b)
+let (^<=) (a, label) b = Rel(Lte,a,label,b)
 
 // Types
 
@@ -14,9 +47,6 @@ type PolicyAtNode = float []
 type Policy = Map<Infoset, PolicyAtNode>
 
 // Testing
-
-#r @"..\..\packages\FsCheck.3.0.0-alpha4\lib\net452\FsCheck.dll"
-open FsCheck
 
 type TreePolicies = TreePolicy of o_old : Policy [] * o_new : Policy [] * tree : GameTree
 
@@ -87,11 +117,7 @@ type MyGenerators =
 
 Arb.register<MyGenerators>()
 
-let error_bound_for_floats = 10.0 ** -7.0
-let (=?) a b = abs (a - b) <= error_bound_for_floats
-let (<=?) a b = a <= b + error_bound_for_floats
-
-// Proof functions
+// Proof related functions
 
 let action_max (tree : GameTree) next =
     match tree with
