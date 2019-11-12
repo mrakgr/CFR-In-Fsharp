@@ -68,10 +68,10 @@ let R_full' (o_old : Policy []) (o_new : Policy[]) path (tree : GameTree) =
 // test would not hold.
 
 // You can verify this by removing perfect recall in the `gen_tree` function.
-let ``R_full<=R_full'`` ({tree=tree; policies_old=policies_old; policies_new=policies_new} : TreePolicies) =
-    R_full policies_old policies_new [] tree <=? R_full' policies_old policies_new [] tree
 
-//Check.One({Config.Quick with MaxTest=10000}, ``R_full<=R_full'``)
+//Check.One({Config.Quick with MaxTest=10000}, fun (TreePolicy(o_old,o_new,tree)) -> 
+//    R_full o_old o_new [] tree <=? R_full' o_old o_new [] tree
+//    )
 
 // Right side of eq 9
 // As the current player's action does not get added to path in succ_a, that means that pi o_old_a path' = pi o_old path'
@@ -85,10 +85,9 @@ let R_full'' (o_old : Policy []) (o_new : Policy[]) path (tree : GameTree) =
         + succ_a a tree (fun path' branch -> pi o_old_a path' * (u (action_update o_new a tree) o_old branch - u o_old o_old branch))
         ))))
 
-let ``R_full'=R_full''`` ({tree=tree; policies_old=policies_old; policies_new=policies_new} : TreePolicies) =
-    R_full' policies_old policies_new [] tree =? R_full'' policies_old policies_new [] tree
-
-//Check.One({Config.Quick with MaxTest=10000}, ``R_full'=R_full''``)
+//Check.One({Config.Quick with MaxTest=10000}, fun (TreePolicy(o_old,o_new,tree)) -> 
+//    R_full' o_old o_new [] tree =? R_full'' o_old o_new [] tree
+//    )
 
 let R_full''_alt (o_old : Policy []) (o_new : Policy[]) path (tree : GameTree) = 
     1.0 / float o_old.Length *
@@ -97,10 +96,9 @@ let R_full''_alt (o_old : Policy []) (o_new : Policy[]) path (tree : GameTree) =
         + succ_a a tree (fun path' branch -> pi o_old path' * (u o_new o_old branch - u o_old o_old branch))
         ))))
 
-let ``R_full''=R_full''_alt`` ({tree=tree; policies_old=policies_old; policies_new=policies_new} : TreePolicies) =
-    R_full'' policies_old policies_new [] tree =? R_full''_alt policies_old policies_new [] tree
-
-//Check.One({Config.Quick with MaxTest=10000}, ``R_full''=R_full''_alt``)
+Check.One({Config.Quick with MaxTest=10000}, fun (TreePolicy(o_old,o_new,tree)) -> 
+    R_full'' o_old o_new [] tree =? R_full''_alt o_old o_new [] tree
+    )
 
 let R_imm (o_old : Policy []) (o_new : Policy[]) path (tree : GameTree) = 
     1.0 / float o_old.Length *
@@ -118,10 +116,9 @@ let succ_R_full (o_old : Policy []) (o_new : Policy[]) path (tree : GameTree) =
 // It is a simple split of the max.
 let R_full''' (o_old : Policy []) (o_new : Policy[]) pi (tree : GameTree) = R_imm o_old o_new pi tree + succ_R_full o_old o_new pi tree
     
-let ``R_full''<=R_full'''`` ({tree=tree; policies_old=policies_old; policies_new=policies_new} : TreePolicies) =
-    R_full'' policies_old policies_new [] tree <=? R_full''' policies_old policies_new [] tree
-
-//Check.One({Config.Quick with MaxTest=10000}, ``R_full''<=R_full'''``)
+//Check.One({Config.Quick with MaxTest=10000}, fun (TreePolicy(o_old,o_new,tree)) -> 
+//    R_full'' o_old o_new [] tree <=? R_full''' o_old o_new [] tree
+//    )
 
 let R_full_succ (o_old : Policy []) (o_new : Policy[]) path (tree : GameTree) = 
     1.0 / float o_old.Length *
@@ -129,10 +126,9 @@ let R_full_succ (o_old : Policy []) (o_new : Policy[]) path (tree : GameTree) =
         pi o_old (path' @ path) * (u o_new o_old branch - u o_old o_old branch)
         ))))
 
-let ``succ_R_full=R_full_succ`` ({tree=tree; policies_old=policies_old; policies_new=policies_new} : TreePolicies) =
-    succ_R_full policies_old policies_new [] tree =? R_full_succ policies_old policies_new [] tree
-
-//Check.One({Config.Quick with MaxTest=10000}, ``succ_R_full=R_full_succ``)
+//Check.One({Config.Quick with MaxTest=10000}, fun (TreePolicy(o_old,o_new,tree)) -> 
+//    succ_R_full o_old o_new [] tree =? R_full_succ o_old o_new [] tree
+//    )
 
 // Equivalent to R_full_succ with the succ_a lifted outside the maximum.
 let R_full_succ' (o_old : Policy []) (o_new : Policy[]) path (tree : GameTree) = 
@@ -140,10 +136,9 @@ let R_full_succ' (o_old : Policy []) (o_new : Policy[]) path (tree : GameTree) =
         R_full o_old o_new (path' @ path) branch
         ))
 
-let ``R_full_succ<=R_full_succ'`` ({tree=tree; policies_old=policies_old; policies_new=policies_new} : TreePolicies) =
-    R_full_succ policies_old policies_new [] tree <=? R_full_succ' policies_old policies_new [] tree
-
-//Check.One({Config.Quick with MaxTest=10000}, ``R_full_succ<=R_full_succ'``)
+//Check.One({Config.Quick with MaxTest=10000}, fun (TreePolicy(o_old,o_new,tree)) -> 
+//    R_full_succ o_old o_new [] tree <=? R_full_succ' o_old o_new [] tree
+//    )
 
 //// Right side of eq 11
 //// Equal to R_full'''

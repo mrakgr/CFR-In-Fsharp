@@ -18,7 +18,7 @@ type Policy = Map<Infoset, PolicyAtNode>
 #r @"..\..\packages\FsCheck.3.0.0-alpha4\lib\net452\FsCheck.dll"
 open FsCheck
 
-type TreePolicies = {policies_old : Policy []; policies_new : Policy []; tree : GameTree }
+type TreePolicies = TreePolicy of o_old : Policy [] * o_new : Policy [] * tree : GameTree
 
 let gen_policy_at_node s : Gen<PolicyAtNode> = 
     let total = 100000
@@ -77,9 +77,9 @@ let gen_tree : Gen<GameTree * Size []> = Gen.sized <| fun s -> gen {
 
 let gen_game num_old num_new : Gen<TreePolicies> = gen {
     let! tree, infoset_sizes = gen_tree
-    let! policies_old = gen_policy infoset_sizes |> Gen.arrayOfLength num_old
-    let! policies_new = gen_policy infoset_sizes |> Gen.arrayOfLength num_new
-    return {policies_old=policies_old; policies_new=policies_new; tree=tree}
+    let! o_old = gen_policy infoset_sizes |> Gen.arrayOfLength num_old
+    let! o_new = gen_policy infoset_sizes |> Gen.arrayOfLength num_new
+    return TreePolicy(o_old, o_new, tree)
     }
 
 type MyGenerators =
