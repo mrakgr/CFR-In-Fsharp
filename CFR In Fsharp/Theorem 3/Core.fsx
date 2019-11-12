@@ -90,3 +90,46 @@ Arb.register<MyGenerators>()
 let error_bound_for_floats = 10.0 ** -7.0
 let (=?) a b = abs (a - b) <= error_bound_for_floats
 let (<=?) a b = a <= b + error_bound_for_floats
+
+// Proof functions
+
+let action_max (tree : GameTree) next =
+    match tree with
+    | Terminal _ -> next -1
+    | Response (id, branches) ->
+        let rec loop s i = if i < branches.Length then loop (max s (next i)) (i+1) else s
+        loop -infinity 0
+
+let action_update o i tree =
+    match tree with
+    | Terminal _ -> o
+    | Response (id, branches) -> 
+        let a = Array.zeroCreate branches.Length
+        a.[i] <- 1.0
+        Map.add id a o
+
+let inline u' (o : Policy) tree next = 
+    match tree with
+    | Terminal reward -> reward
+    | Response (id, branches) -> Array.fold2 (fun s policy branch -> s + (if policy <> 0.0 then policy * next branch else 0.0)) 0.0 o.[id] branches
+
+// Evaluates the first player, then the second, then loops back to first.
+let rec u (o_one : Policy) (o_two : Policy) tree = u' o_one tree (fun branch -> u' o_two branch (u o_one o_two))
+// How it would be if player two was the starter.
+let rec u_two (o_one : Policy) (o_two : Policy) tree = u' o_two tree (fun branch -> u' o_one branch (u_two o_one o_two))
+
+let o_max o next = Array.fold (fun s x -> max s (next x)) -infinity o
+let o_sum o next = Array.fold (fun s x -> s + next x) 0.0 o
+
+let inline on_branches next branches = Array.fold (fun (s, i) branch -> s + next i branch, i + 1) (0.0, 0) branches |> fst
+/// Note that succ is intended to be used for regret calculations hence it returns 0.0 on terminal nodes.
+let inline on_response next tree = match tree with Terminal _ -> 0.0 | Response (id, branches) -> next id branches
+
+let inline succ' (tree : GameTree) next =
+    on_response (fun id -> on_branches (fun i branch -> next [id, i] branch)) tree
+let sum_succ (tree : GameTree) next =
+    on_response (fun _ -> on_branches (fun _ branch -> succ' branch next)) tree
+let sum_succ_a a (tree : GameTree) next =
+    on_response (fun _ branches -> succ' branches.[a] next) tree
+
+let pi (o : Policy) path = List.fold (fun s (id, i) -> s * o.[id].[i]) 1.0 path
