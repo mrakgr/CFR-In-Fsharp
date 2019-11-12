@@ -12,26 +12,22 @@ let (.=) a b = a =~ b |@ sprintf "%f = %f" a b
 let (.<=) a b = a <=~ b |@ sprintf "%f <= %f" a b
 let (.<) a b = a <~ b |@ sprintf "%f < %f" a b
 
-type Op = Eq | Lt | Lte
-type TransitiveRelation =
-    | Rel of Op * float * string * TransitiveRelation
-    | Value of float
+type Op = Eq of float | Lt of float | Lte of float | Label of Op * string
 
-let rec relation x = 
-    let body a label b = function
-        | Eq -> a =~ b |@ sprintf "%s failed. %f =~ %f is false" label a b
-        | Lte -> a <=~ b |@ sprintf "%s failed. %f <=~ %f is false" label a b
-        | Lt -> a <~ b |@ sprintf "%s failed. %f <~ %f is false" label a b
-    match x with
-    | Rel (op, a, label, (Rel(_,b,_,_) as next)) -> body a label b op .&. relation next
-    | Rel (op, a, label, Value b) -> body a label b op
-    | Value _ -> true |@ "Qed"
+let rec relation s l = 
+    let rec body x a = 
+        match x with
+        | Eq b -> a =~ b |@ sprintf "%f =~ %f is false" a b, b
+        | Lte b -> a <=~ b |@ sprintf "%f <=~ %f is false" a b, b
+        | Lt b -> a <~ b |@ sprintf "%f <~ %f is false" a b, b
+        | Label (op, message) -> let prop, b = body op a in prop |@ message, b
+            
+    List.fold (fun (prop, a) x -> let prop', b = body x a in prop .&. prop', b) (true |@ "trivial", s) l
+    |> fst
 
-let value = Value
-let step a label = a, label
-let (^=) (a, label) b = Rel(Eq,a,label,b)
-let (^<) (a, label) b = Rel(Lt,a,label,b)
-let (^<=) (a, label) b = Rel(Lte,a,label,b)
+let eq label x = Label(Eq x, label)
+let lte label x = Label(Lte x, label)
+//let lt label x = Label(Lt x, label)
 
 // Types
 

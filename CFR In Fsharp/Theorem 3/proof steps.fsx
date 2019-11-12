@@ -1,47 +1,38 @@
-﻿#load "Core.fsx"
+﻿// Check out proofs.fsx for the following in a somewhat more readable form.
+
+#load "Core.fsx"
 open Core
 open FsCheck
 
-// Full regret - eq 8
+// Lemma 5
+
+// Eq 8
 // Player two always follows the old policy.
 // Throughout the paper the authors do a weird thing where instead of passing o_new to u directly, they instead carefully filter it so only the descendants
-// get added, but that is needless work due to the perfect recall property so it won't be done here.
+// get added, but that is needless work due to the perfect recall property so it won't be done.
 let R_full (o_old : Policy []) (o_new : Policy[]) path (tree : GameTree) = 
     1.0 / float o_old.Length * o_max o_new (fun o_new -> o_sum o_old (fun o_old -> pi o_old path * (u o_new o_old tree - u o_old o_old tree)))
 
-// The actual full regret in the proof.
 // For the missing step between eq 8 and eq 9. It should be the left side of eq 9.
 let R_full' (o_old : Policy []) (o_new : Policy[]) path (tree : GameTree) = 
     1.0 / float o_old.Length *
     action_max tree (fun a -> o_max o_new (fun o_new -> o_sum o_old (fun o_old -> pi o_old path * (u (action_update o_new a tree) o_old tree - u o_old o_old tree))))
 
-// Immediate regret
-let R_imm (o_old : Policy []) (o_new : Policy[]) path (tree : GameTree) = 
-    1.0 / float o_old.Length *
-    action_max tree (fun a -> o_max o_new (fun o_new -> o_sum o_old (fun o_old -> 
-        pi o_old path * (u (action_update o_old a tree) o_old tree - u o_old o_old tree)
-        )))
+// The fact that the paper never got around to even stating this between eq 8 and eq 9 is its biggest ommision in my view.
+// What the following takes advantage of is that getting the maximum of a list is essentially always better or equal to 
+// getting some probabilistically weighted combination of its elements. In the context of regret calculation it is essential 
+// that perfect recall is maintained.
 
-let proof (TreePolicy(o_old,o_new,tree)) =
-    relation (
-        // Lemma 5
+// Otherwise what will happen is that dependencies will get introduced between the policy at the current node its child nodes.
+// If that happens it will no longer be true that taking the max of the pure strategies will give the optimal result and the following
+// test would not hold.
 
-        step (R_full o_old o_new [] tree) "eq 8.5"
-        // The fact that the paper never got around to even stating this between eq 8 and eq 9 is its biggest ommision in my view.
-        // What the following takes advantage of is that getting the maximum of a list is essentially always better or equal to 
-        // getting some probabilistically weighted combination of its elements. In the context of regret calculation it is essential 
-        // that perfect recall is maintained.
+// You can verify this by removing perfect recall in the `gen_tree` function.
 
-        // Otherwise what will happen is that dependencies will get introduced between the policy at the current node its child nodes.
-        // If that happens it will no longer be true that taking the max of the pure strategies will give the optimal result and the following
-        // test would not hold.
-
-        // You can verify this by removing perfect recall in the `gen_tree` function.
-        ^<= step (R_full' o_old o_new [] tree) "eq 9"
-        ^= step "eq 9.5"
-        )
-
-//Check.One({Config.Quick with MaxTest=10000}, proof)
+// Eq 8.5
+//Check.One({Config.Quick with MaxTest=10000}, fun (TreePolicy(o_old,o_new,tree)) -> 
+//    R_full o_old o_new [] tree <=? R_full' o_old o_new [] tree
+//    )
 
 // Right side of eq 9
 // Note that pi o_old path * u o_old_a o_old tree = pi o_old path * pi o_old path' * u o_old o_old branch, hence the two quantities subtract to zero.
@@ -71,7 +62,11 @@ let R_full''_alt (o_old : Policy []) (o_new : Policy[]) path (tree : GameTree) =
 //    R_full'' o_old o_new [] tree =? R_full''_alt o_old o_new [] tree
 //    )
 
-
+let R_imm (o_old : Policy []) (o_new : Policy[]) path (tree : GameTree) = 
+    1.0 / float o_old.Length *
+    action_max tree (fun a -> o_max o_new (fun o_new -> o_sum o_old (fun o_old -> 
+        pi o_old path * (u (action_update o_old a tree) o_old tree - u o_old o_old tree)
+        )))
 
 let succ_R_full (o_old : Policy []) (o_new : Policy[]) path (tree : GameTree) = 
     1.0 / float o_old.Length *
@@ -106,7 +101,7 @@ let R_full'''' (o_old : Policy []) (o_new : Policy[]) path (tree : GameTree) = R
 //    R_full''' o_old o_new [] tree =? R_full'''' o_old o_new [] tree
 //    )
 
-// Eq 12 has been skipped.
+// Eq 12 has been skipped as I use the original definition of the full regret in eq 13.
 
 // Equivalent to R_full_succ with the sum_succ_a lifted outside the maximum.
 let R_full_succ' (o_old : Policy []) (o_new : Policy[]) path (tree : GameTree) = 
@@ -146,7 +141,7 @@ let R_full'''''' (o_old : Policy []) (o_new : Policy[]) path (tree : GameTree) =
 
 // Lemma 6
 
-// This one I am going to do differnetly than in the paper.
+// This one is different than in the paper
 
 let R_full_split (o_old : Policy []) (o_new : Policy[]) path (tree : GameTree) = 
     R_imm o_old o_new path tree + sum_succ tree (fun path' branch -> max 0.0 (R_full o_old o_new (path' @ path) branch))
@@ -188,4 +183,4 @@ Check.One({Config.Quick with MaxTest=10000}, fun (TreePolicy(o_old,o_new,tree)) 
     .<= R_imm_sum o_old o_new [] tree
     )
 
-/// This (approximately) proves theorem 3.
+// This (approximately) proves theorem 3.

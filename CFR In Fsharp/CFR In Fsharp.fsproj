@@ -62,6 +62,7 @@
     <None Include="Theorem 3\Core.fsx" />
     <None Include="Theorem 3\proof steps.fsx" />
     <None Include="Theorem 3\proofs.fsx" />
+    <None Include="Theorem 3\readme.md" />
     <None Include="Script1.fsx" />
   </ItemGroup>
   <ItemGroup>
