@@ -67,6 +67,7 @@
     <None Include="Blackwell%27s approachability\readme.md" />
     <None Include="Blackwell%27s approachability\minimax.fsx" />
     <None Include="Blackwell%27s approachability\convex.fsx" />
+    <None Include="Hart\cor-eq.fsx" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="FsCheck">
