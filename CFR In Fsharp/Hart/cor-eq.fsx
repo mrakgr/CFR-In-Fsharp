@@ -81,3 +81,4 @@ let S_eq g s s' =
     loop 0
 
 let z g t s = 1.0 / float t * sum_time t (fun t -> if S_eq g (g.h t) s then 1.0 else 0.0)
+
